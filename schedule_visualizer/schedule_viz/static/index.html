@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Визуализатор расписания</title>
+  <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Визуализатор расписания</h1>
+      <p>Вставьте текст, чтобы увидеть занятия по дням и времени</p>
+    </div>
+    <button id="btn-theme" class="theme-toggle" type="button" aria-label="Включить светлую тему"
+      title="Включить светлую тему" hidden>
+      <svg class="theme-icon theme-icon--sun" aria-hidden="true" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19m0-14-1.5 1.5m-11 11L5 19"/>
+      </svg>
+      <svg class="theme-icon theme-icon--moon" aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M20.9 13.3A9 9 0 0 1 10.7 3.1a9 9 0 1 0 10.2 10.2Z"/>
+      </svg>
+    </button>
+  </header>
+
+  <main id="file-help" class="layout" hidden>
+    <section class="panel file-help" aria-labelledby="file-help-title">
+      <h2 id="file-help-title">Откройте расписание через локальный сервер</h2>
+      <p>Эта вкладка открыта как файл. Для разбора расписания нужен Python-сервер.</p>
+      <p>Из папки проекта запустите <code>python -m schedule_viz serve --port 18764 --open</code>
+        или <a href="http://127.0.0.1:18764/">откройте приложение</a>, если сервер уже работает.</p>
+    </section>
+  </main>
+
+  <main id="app" class="layout">
+    <section class="panel input-panel" aria-labelledby="input-title">
+      <h2 id="input-title"><label for="source">Текст расписания</label></h2>
+      <textarea id="source" spellcheck="false" rows="12" aria-describedby="input-hint"
+        placeholder="Понедельник&#10;09:00–10:30 Алгебра, лекция, ауд. 205&#10;&#10;Вторник&#10;2 пара Физика, лаб., ауд. 412"></textarea>
+      <div class="actions">
+        <button id="btn-sample" type="button" class="primary">Загрузить пример</button>
+        <button id="btn-clear" type="button">Очистить</button>
+      </div>
+      <p class="hint" id="input-hint">
+        Укажите день и время или номер пары. Можно добавить тип занятия, аудиторию, преподавателя и чётность недели.
+      </p>
+      <details id="warnings" class="warnings" hidden>
+        <summary><span id="warnings-count"></span></summary>
+        <ul id="warnings-list"></ul>
+      </details>
+    </section>
+
+    <section class="panel schedule-panel" aria-labelledby="schedule-title">
+      <div class="schedule-head">
+        <div>
+          <h2 id="schedule-title">Сетка занятий</h2>
+          <p id="stats" class="stats" aria-live="polite"></p>
+        </div>
+        <div class="schedule-actions">
+          <div class="segmented" id="parity" role="group" aria-label="Чётность недели">
+            <button type="button" data-parity="all" aria-pressed="true">Все</button>
+            <button type="button" data-parity="odd" aria-pressed="false">Нечётная</button>
+            <button type="button" data-parity="even" aria-pressed="false">Чётная</button>
+          </div>
+          <button id="btn-print" type="button">Печать</button>
+        </div>
+      </div>
+      <div id="legend" class="legend" role="group" aria-label="Фильтр по предметам"></div>
+      <p id="error" class="error" role="alert" hidden></p>
+      <div id="schedule" class="schedule-scroll" role="region" aria-labelledby="schedule-title" tabindex="0"></div>
+    </section>
+  </main>
+
+  <dialog id="details" aria-labelledby="d-subject">
+    <form method="dialog">
+      <h3 id="d-subject"></h3>
+      <dl id="d-list"></dl>
+      <button class="close">Закрыть</button>
+    </form>
+  </dialog>
+
+  <script src="../static/app.js" defer></script>
+</body>
+</html>

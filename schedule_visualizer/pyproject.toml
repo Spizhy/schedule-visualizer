@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "schedule-viz"
+version = "1.0.0"
+description = "Визуализатор расписания: текст расписания -> интерактивная цветная сетка"
+requires-python = ">=3.10"
+dependencies = []  # только стандартная библиотека
+
+[project.scripts]
+schedule-viz = "schedule_viz.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["schedule_viz*"]
+
+[tool.setuptools.package-data]
+schedule_viz = ["static/*"]
