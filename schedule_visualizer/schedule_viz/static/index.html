@@ -8,10 +8,16 @@
 </head>
 <body>
   <header class="topbar">
-    <div>
+    <div class="brand">
+      <svg class="brand-icon" aria-hidden="true" viewBox="0 0 24 24">
+        <rect x="3" y="5" width="18" height="16" rx="2"/>
+        <path d="M7 3v4m10-4v4M3 10h18"/>
+      </svg>
       <h1>Визуализатор расписания</h1>
-      <p>Вставьте текст, чтобы увидеть занятия по дням и времени</p>
+      <span class="mobile-title" aria-hidden="true">Расписание</span>
     </div>
+    <div class="topbar-actions">
+    <button id="btn-print" type="button" hidden>Печать</button>
     <button id="btn-theme" class="theme-toggle" type="button" aria-label="Включить светлую тему"
       title="Включить светлую тему" hidden>
       <svg class="theme-icon theme-icon--sun" aria-hidden="true" viewBox="0 0 24 24">
@@ -22,6 +28,7 @@
         <path d="M20.9 13.3A9 9 0 0 1 10.7 3.1a9 9 0 1 0 10.2 10.2Z"/>
       </svg>
     </button>
+    </div>
   </header>
 
   <main id="file-help" class="layout" hidden>
@@ -36,15 +43,18 @@
   <main id="app" class="layout">
     <section class="panel input-panel" aria-labelledby="input-title">
       <h2 id="input-title"><label for="source">Текст расписания</label></h2>
-      <textarea id="source" spellcheck="false" rows="12" aria-describedby="input-hint"
+      <button id="btn-editor" class="editor-toggle" type="button" aria-controls="editor" aria-expanded="true">
+        Текст расписания
+      </button>
+      <form id="editor">
+      <textarea id="source" aria-label="Текст расписания" spellcheck="false" rows="8"
         placeholder="Понедельник&#10;09:00–10:30 Алгебра, лекция, ауд. 205&#10;&#10;Вторник&#10;2 пара Физика, лаб., ауд. 412"></textarea>
       <div class="actions">
-        <button id="btn-sample" type="button" class="primary">Загрузить пример</button>
-        <button id="btn-clear" type="button">Очистить</button>
+        <button id="btn-visualize" type="submit" class="primary">Визуализировать</button>
+        <button id="btn-sample" type="button">Загрузить пример</button>
       </div>
-      <p class="hint" id="input-hint">
-        Укажите день и время или номер пары. Можно добавить тип занятия, аудиторию, преподавателя и чётность недели.
-      </p>
+      <button id="btn-clear" class="text-button" type="button" hidden>Очистить</button>
+      </form>
       <details id="warnings" class="warnings" hidden>
         <summary><span id="warnings-count"></span></summary>
         <ul id="warnings-list"></ul>
@@ -54,21 +64,30 @@
     <section class="panel schedule-panel" aria-labelledby="schedule-title">
       <div class="schedule-head">
         <div>
-          <h2 id="schedule-title">Сетка занятий</h2>
-          <p id="stats" class="stats" aria-live="polite"></p>
+          <h2 id="schedule-title">Расписание</h2>
         </div>
         <div class="schedule-actions">
-          <div class="segmented" id="parity" role="group" aria-label="Чётность недели">
-            <button type="button" data-parity="all" aria-pressed="true">Все</button>
-            <button type="button" data-parity="odd" aria-pressed="false">Нечётная</button>
-            <button type="button" data-parity="even" aria-pressed="false">Чётная</button>
+          <div class="segmented" id="view" role="group" aria-label="Вид расписания">
+            <button type="button" data-view="week" aria-pressed="true">Неделя</button>
+            <button type="button" data-view="day" aria-pressed="false">День</button>
           </div>
-          <button id="btn-print" type="button">Печать</button>
         </div>
+      </div>
+      <div id="day-controls" class="day-controls" hidden>
+        <label for="selected-day">День недели</label>
+        <select id="selected-day"></select>
       </div>
       <div id="legend" class="legend" role="group" aria-label="Фильтр по предметам"></div>
       <p id="error" class="error" role="alert" hidden></p>
-      <div id="schedule" class="schedule-scroll" role="region" aria-labelledby="schedule-title" tabindex="0"></div>
+      <div id="schedule" class="schedule-scroll" role="region" aria-label="Занятия по дням" tabindex="0"></div>
+      <div class="schedule-footer" id="schedule-footer" hidden>
+        <p id="stats" class="stats" aria-live="polite"></p>
+        <div id="parity" class="segmented parity" role="group" aria-label="Чётность недели" hidden>
+          <button type="button" data-parity="all" aria-pressed="true">Все</button>
+          <button type="button" data-parity="odd" aria-pressed="false">Нечётная</button>
+          <button type="button" data-parity="even" aria-pressed="false">Чётная</button>
+        </div>
+      </div>
     </section>
   </main>
 
