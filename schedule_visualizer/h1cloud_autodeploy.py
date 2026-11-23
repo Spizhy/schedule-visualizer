@@ -13,7 +13,9 @@ import sys
 import tempfile
 import time
 from urllib.error import URLError
+from urllib.parse import urlparse
 from urllib.request import Request, urlopen
+from xml.etree import ElementTree
 from zipfile import BadZipFile, ZipFile
 
 ROOT = Path(__file__).resolve().parent
@@ -24,6 +26,7 @@ PORT = int(os.environ.get("SERVER_PORT") or os.environ.get("PORT") or "25070")
 CHECK_INTERVAL = 90
 ARCHIVE_LIMIT = 16 * 1024 * 1024
 SHA = re.compile(r"[0-9a-f]{40}")
+BUILD_TAG = re.compile(r"h1cloud-(\d+)-([0-9a-f]{40})")
 
 
 def read_url(url: str, limit: int, timeout: int = 10) -> bytes:
@@ -36,18 +39,14 @@ def read_url(url: str, limit: int, timeout: int = 10) -> bytes:
 
 
 def latest_build() -> tuple[int, str] | None:
-    address = (
-        f"https://api.github.com/repos/{REPO}/actions/workflows/tests.yml/runs"
-        "?branch=main&event=push&status=success&per_page=1"
-    )
-    runs = json.loads(read_url(address, 64 * 1024))["workflow_runs"]
-    if not runs:
-        return None
-    run = runs[0]
-    revision = run["head_sha"]
-    if not SHA.fullmatch(revision):
-        raise ValueError("Invalid revision in GitHub workflow response")
-    return int(run["run_number"]), revision
+    feed = ElementTree.fromstring(read_url(f"https://github.com/{REPO}/releases.atom", 256 * 1024))
+    builds = []
+    for link in feed.findall("{*}entry/{*}link"):
+        path = urlparse(link.get("href", "")).path
+        prefix = f"/{REPO}/releases/tag/"
+        if path.startswith(prefix) and (tag := BUILD_TAG.fullmatch(path.removeprefix(prefix))):
+            builds.append((int(tag[1]), tag[2]))
+    return max(builds, default=None)
 
 
 def stage_build(revision: str) -> Path:
@@ -165,7 +164,7 @@ def main() -> None:
                         for entry in RELEASES.iterdir():
                             if entry not in (previous, path) and entry.is_dir() and SHA.fullmatch(entry.name):
                                 shutil.rmtree(entry, ignore_errors=True)
-            except (URLError, OSError, ValueError, KeyError, BadZipFile, subprocess.SubprocessError) as error:
+            except (URLError, OSError, ValueError, ElementTree.ParseError, BadZipFile, subprocess.SubprocessError) as error:
                 print(f"Update check will retry: {error}", flush=True)
             try:
                 worker.wait(timeout=CHECK_INTERVAL)

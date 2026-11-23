@@ -19,3 +19,22 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m unittest discover -s tests -v
+
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Publish the tested revision
+        shell: bash
+        run: |
+          tag="h1cloud-${GITHUB_RUN_NUMBER}-${GITHUB_SHA}"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            exit 0
+          fi
+          gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "H1Cloud build ${GITHUB_RUN_NUMBER}" --notes "Tests passed for ${GITHUB_SHA}."
