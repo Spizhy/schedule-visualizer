@@ -143,6 +143,26 @@ class ApiTests(unittest.TestCase):
             self.assertIn("text/html", response.headers["Content-Type"])
             self.assertEqual(response.headers["X-Content-Type-Options"], "nosniff")
 
+    def test_health_reports_deployed_revision(self):
+        from unittest.mock import patch
+
+        with patch.dict("os.environ", {"SCHEDULE_REVISION": "release-test"}):
+            with urllib.request.urlopen(self.base + "/healthz") as response:
+                self.assertEqual(json.load(response), {"status": "ok", "revision": "release-test"})
+
+    def test_head_keeps_headers_and_omits_body(self):
+        request = urllib.request.Request(self.base + "/static/style.css", method="HEAD")
+        with urllib.request.urlopen(request) as response:
+            self.assertGreater(int(response.headers["Content-Length"]), 0)
+            self.assertEqual(response.read(), b"")
+
+    def test_schedule_line_limit(self):
+        body = json.dumps({"text": "Пн\n09:00-10:30 Алгебра\n" * 101}).encode()
+        with self.assertRaises(urllib.error.HTTPError) as ctx:
+            self.post(body)
+        with ctx.exception as response:
+            self.assertEqual(response.code, 413)
+
     def test_unknown_path_and_traversal_are_404(self):
         for path in ("/nope", "/static/../server.py", "/static/%2e%2e/server.py"):
             with self.assertRaises(urllib.error.HTTPError) as ctx:

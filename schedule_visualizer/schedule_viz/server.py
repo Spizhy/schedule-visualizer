@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from http import HTTPStatus
 from pathlib import Path
 from socketserver import ThreadingMixIn
@@ -39,7 +40,10 @@ def _error(status: HTTPStatus, message: str):
 
 def _get(path: str):
     if path == "/healthz":
-        return _json_response(HTTPStatus.OK, {"status": "ok"})
+        payload = {"status": "ok"}
+        if revision := os.environ.get("SCHEDULE_REVISION"):
+            payload["revision"] = revision
+        return _json_response(HTTPStatus.OK, payload)
     entry = _STATIC_FILES.get(path)
     if entry is None:
         return _error(HTTPStatus.NOT_FOUND, "Не найдено")
